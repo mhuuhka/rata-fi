@@ -1,6 +1,5 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import moment from "moment/moment";
 import './stations.css';
 import {fetchStations, fetchTraffic} from "../../ActionCreators";
 import ArrivingTable from "../../Components/Stations/arrivingTable";
@@ -38,12 +37,20 @@ class StationsView extends React.Component {
     }
 
     onChange = (e) => {
-        this.setState({
-            station: e.target.value,
-        })
-        this.props.fetchTraffic(e.target.value)
+        console.log(e.target.value)
+        for (var i = 0; i < this.props.stations.stations.length; i++) {
+            if (e.target.value === this.props.stations.stations[i].stationShortCode) {
+                this.props.fetchTraffic(e.target.value)
+                this.setState({
+                    station: e.target.value,
+                })
+            }
+        }
     }
 
+    getTraffic = (e) => {
+        this.props.fetchTraffic(e.target.value)
+    }
     setVisible = (arriving, departing) => (e) => {
         this.setState({
             arriving_visible: arriving,
@@ -52,39 +59,38 @@ class StationsView extends React.Component {
     }
 
     render() {
-        console.log(moment().format('YY-MM-DD'))
-        let options = [];
-        for (var i = 0; i < this.state.stations.length; i++) {
-            if (this.state.stations[i].passengerTraffic) {
-                options.push(
-                    <option key={'station' + this.state.stations[i].stationName}
-                            value={this.state.stations[i].stationShortCode}>
-                        {this.state.stations[i].stationName}
-                    </option>);
-            }
+        let stationContainer = null;
+        if (this.props.stations.stationsFetched) {
+            let options = [];
+            for (var i = 0; i < this.props.stations.stations.length; i++) {
+                if (this.props.stations.stations[i].passengerTraffic) {
+                    options.push(
+                        <option key={'station' + this.props.stations.stations[i].stationName}
+                                value={this.props.stations.stations[i].stationShortCode}
+                                data-value={this.props.stations.stations[i].stationShortCode} onClick={this.getTraffic}>
+                            {this.props.stations.stations[i].stationName}
+                        </option>);
+                }
 
-        }
-        let list = <datalist id="stations">
-            {options}
-        </datalist>
-        let component = null;
-        if (this.props.trafficFetched) {
-            if (this.state.arriving_visible) {
-                component = <ArrivingTable traffic={this.props.traffic} station={this.state.station}
-                                           stations={this.props.stations}/>
             }
-            if (this.state.departing_visible) {
-                component = <DepartingTable traffic={this.props.traffic} station={this.state.station}
-                                            stations={this.props.stations}/>
+            let list = <datalist id="stations">
+                {options}
+            </datalist>
+            let component = null;
+            if (this.props.trafficFetched) {
+                if (this.state.arriving_visible) {
+                    component = <ArrivingTable traffic={this.props.traffic} station={this.state.station}
+                                               stations={this.props.stations}/>
+                }
+                if (this.state.departing_visible) {
+                    component = <DepartingTable traffic={this.props.traffic} station={this.state.station}
+                                                stations={this.props.stations}/>
+                }
             }
-        } else if (this.props.trafficFetching) {
-            component = <Loading type={'bubbles'} height={30} width={30}/>
-        } else {
-            component = <div></div>
-        }
-
-        return (
-            <div className="stations">
+            if (this.props.trafficFetching) {
+                component = <Loading type={'bubbles'} height={30} width={30}/>
+            }
+            stationContainer = <div className="stations">
                 <div className="row">
                     <div className="col-lg-6">
                         <label>Hae asemaa nimeltä</label>
@@ -111,7 +117,12 @@ class StationsView extends React.Component {
                     </div>
                 </div>
             </div>
-        );
+        } else {
+            stationContainer = <Loading type={'bubbles'} width={100} height={100}/>
+        }
+
+
+        return (stationContainer);
 
     }
 }

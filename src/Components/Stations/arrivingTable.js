@@ -6,7 +6,6 @@ import './tables.css';
 class ArrivingTable extends React.Component {
 
     render() {
-        console.log(this.props.station)
         let table_data = [];
         let index = 0;
         for (var i = 0; i < this.props.traffic.length; i++) {
@@ -18,10 +17,10 @@ class ArrivingTable extends React.Component {
                 if (this.props.traffic[i].timeTableRows[j].stationShortCode === this.props.station && moment().isBefore(moment(this.props.traffic[i].timeTableRows[j].scheduledTime))) {
                     //Check if train is arrival, or if the train starting stop is is selected station
                     if (this.props.traffic[i].timeTableRows[j].type === 'ARRIVAL') {
-                        arrival_time = moment.tz(this.props.traffic[i].timeTableRows[j].scheduledTime, 'Europe/Helsinki').format('DD.MM HH:mm');
+                        arrival_time = moment.tz(this.props.traffic[i].timeTableRows[j].scheduledTime, 'Europe/Helsinki').format('HH:mm');
                     }
                     if (j === 0) {
-                        arrival_time = moment.tz(this.props.traffic[i].timeTableRows[j].scheduledTime, 'Europe/Helsinki').format('DD.MM HH:mm');
+                        arrival_time = moment.tz(this.props.traffic[i].timeTableRows[j].scheduledTime, 'Europe/Helsinki').format('HH:mm');
                     }
                     for (var k = 0; k < this.props.stations.stations.length; k++) {
                         //convert stationShortcode to trainstation name
@@ -37,9 +36,16 @@ class ArrivingTable extends React.Component {
                             <td>{this.props.traffic[i].trainType + ' ' + this.props.traffic[i].trainNumber}</td>
                             <td>{start_stop}</td>
                             <td>{end_stop}</td>
-                            <td>{arrival_time}</td>
+                            <td>{moment(arrival_time).isBefore(moment(this.props.traffic[i].timeTableRows[j].actualTime)) ?
+                                <div>
+                                    <p><b className="red">{this.props.traffic[i].timeTableRows[j].actualTime}</b></p>
+                                    <p>{arrival_time}</p>
+                                </div> : arrival_time}</td>
                         </tr>;
-                    index++;
+                    if (index < 10) {
+                        index++;
+                    }
+
                 }
             }
 
